@@ -940,21 +940,22 @@ in that log group. Metric filters are also applied on the log groups.
 
 Concerned with who did what.
 
-Logs API calls or activities as **CloudTrail Event**
-
-Stores the last 90 days of events in the **Event History**. This is enabled
-by default and is no additional cost.
+Logs API calls or activities of AWS account as **CloudTrail Event**.
+Stores the last 90 days of events in the **Event History**. This is enabled by default and is no additional cost.
 
 To customize the service you need to create a new **trail**.
-Two types of events. Default only logs Management Events
+3 types of events. Default only logs Management Events
 
 - Management Events:
 Provide information about management operations performed on resources
 in the AWS account. Create an EC2 instance or terminating one.
 
 - Data Events:
-Objects being uploaded to S3 or a Lambda function being invoked. This is not
-enabled by default and must be enabled for that trail.
+Objects being uploaded to S3 or a Lambda function being invoked.
+This is not enabled by default and must be enabled for that trail.
+
+- Insight Events:
+Identify unsual activities, errors or user behavior in the account.
 
 #### 1.3.9.1. CloudTrail Trail
 
@@ -964,32 +965,30 @@ Once created, it can operate in two ways
 
 - One region trail
 - All region trail
-  - Collection of trails in all regions
-  - When new regions are added, they will be added to this trail automatically
+  - Logs events for all AWS regions. When new regions are added, they will be included in this trail automatically.
 
-Most services log events in the region they occur. The trail then must be
-a one region trail in that region or an all region trail to log that event.
+Most services log events in the region they occur. The trail must be a single region trail in that region or a multi-region trail to log that event.
 
-A small number of services log events globally to one region. Global services
-such as IAM or STS or CloudFront always log their events to `us-east-1`
+A small number of services log events globally to one region. Global services such as IAM or STS or CloudFront always log their events to `us-east-1`
+A trail must have this enabled to have these global service events logged.
 
-A trail must have this enabled to have this logged.
+Multi-Region Trail: CloudTrail does not have a multi-region trail by default, but you can create one. A multi-region trail will log events from all regions.
+Global Services with Multi-Region Trail: After creating a multi-region trail, it will log events from all regions, including global service events logged in us-east-1.
 
 AWS services are largely split into regional services or global services.
 
-When the services log, they log in the region they are created or
-to `us-east-1` if they are a global service.
+When the services log, they log in the region they are created or to `us-east-1` if they are a global service.
 
-A trail can store events in an S3 bucket as a compressed JSON file. It can
-also use CloudWatch Logs to output the data.
+A trail can store events in an S3 bucket as a compressed JSON file. It can also use CloudWatch Logs to output the data.
+Without trails (and by default), CT will log event history in the CT UI. It's only called a trail when it will be logged in S3 or CW.
 
-CloudTrail products can create an organizational trail. This allows a single
-management point for all the APIs and management events for that org.
+CloudTrail products can create an organizational trail. This allows a single management point for all events for that org.
+Makes managing multi-accounts much easier.
 
 #### 1.3.9.2. CloudTrail Exam PowerUp
 
 - It is enabled by default for 90 days without S3
-- Trails are how you configure S3 and CWLogs
+- Trails are how you configure S3 and CWLogs (to store logs in better places)
 - Management events are only saved by default
 - IAM, STS, CloudFront are Global Service events and log to `us-east-1`
   - Trail must be enabled to do this
