@@ -29,10 +29,8 @@
 
 Cloud computing provides
 
-1. On-Demand Self-Service: Provision and terminate using a UI/CLI without
-human interaction.
-2. Broad Network Access: Access services over any networks on any devices using
-standard protocols and methods.
+1. On-Demand Self-Service: Provision and terminate using a UI/CLI without human interaction.
+2. Broad Network Access: Access services over any networks on any devices using standard protocols and methods.
 3. Resource Pooling: Economies of scale, cheaper service.
 4. Rapid Elasticity: Scale up and down automatically in response to system load.
 5. Measured Service: Usage is measured. Pay only for what you consume.
@@ -43,7 +41,6 @@ standard protocols and methods.
 - Private Cloud: using on-premises real cloud. Must meet 5 requirements.
 - Multi-Cloud: using more than 1 public cloud in one deployment.
 - Hybrid Cloud: using public and private clouds in one environment
-  - This is **NOT** using Public Cloud and Legacy on-premises hardware.
 
 ### 1.1.2. Cloud Service Models
 
@@ -82,27 +79,24 @@ There are additional services such as *Function as a Service*,
 
 ### 1.2.1. Public vs Private Services
 
-
 Refers to the networking only, not permissions.
 
-- Public Internet: AWS is a public cloud platform and connected to the public
-internet. It is not on the public internet, but is next to it.
-- AWS Public Zone: Attached to the Public Internet.
+- Public Internet.
+- AWS Public Zone: "Attached" to the Public Internet.
 S3 Bucket is hosted in the Public Zone, not all services are.
-Just because you connect to a public service,
-that does not mean you have permissions to access it.
+Just because you connect to a public service, that does not mean you have permissions to access it.
+Resources on the Public zone do not belong to a VPC.
 - AWS Private Zone: No direct connectivity is allowed between the AWS Private
 Zone and the public cloud unless this is configured for that service.
-This is done by taking a part of the private service and projecting it into the
-AWS public zone which allows public internet to make inbound or outbound
-connections.
+VPCs do not communicate, unless specified.
+This is done by taking a part of the private service and projecting it into the AWS public zone which allows public internet to make inbound or outbound connections.
+Resources on the private zone belong to a VPC
 
 ### 1.2.2. AWS Global Infrastructure
 
 #### 1.2.2.1. Regions
 
-AWS Region is an area of the world they have selected for a full deployment of
-AWS infrastructure.
+AWS Region is an area of the world they have selected for a full deployment of AWS infrastructure.
 
 Areas such as countries or states
 
@@ -118,17 +112,15 @@ Regions are often not near their customers.
 
 #### 1.2.2.2. AWS Edge Locations
 
-Local distribution points. Useful for services such as Netflix so they can store
-data closer to customers for low latency high speed transfers.
+Local distribution points. Useful for services such as Netflix so they can store data closer to customers for low latency high speed transfers.
 
-If a customer wants to access data stored in Brisbane, they will stream data
-from the Sydney Region through an Edge Location hosted in Brisbane.
+If a customer wants to access data stored in Brisbane, they will stream data from the Sydney Region through an Edge Location hosted in Brisbane.
 
 #### 1.2.2.3. AWS Management
 
 Regions are connected together with high speed networking.
 Some services such as EC2 need to be selected in a region.
-Some services are global such as IAM
+Some services are global such as IAM.
 
 #### 1.2.2.4. Region's 3 Benefits
 
@@ -158,11 +150,14 @@ AZs are connected to each other with high speed redundant networks.
 
 1. Globally Resilient: IAM or Route 53. No way for them to go down. Data is
 replicated throughout multiple regions.
+It will take the world to fail, for this service to fail.
 2. Region Resilient: Operate as separate services in each region. Generally
 replicate data to multiple AZs in that region.
+If the region fails, the service will fail.
 3. AZ Resilient: Run from a single AZ. It is possible for hardware to fail in an
 AZ and the service to keep running because of redundant equipment, but should
 not be relied on.
+If the AZ fails, the service will fail.
 
 ### 1.2.4. AWS Default VPC
 
@@ -170,26 +165,17 @@ VPC is a virtual network inside of AWS.
 A VPC is within 1 account and 1 region which makes it regionally resilient.
 A VPC is private and isolated until decided otherwise.
 
-One default VPC per region. Can have many custom VPCs which are all private
-by default.
+One default VPC per region. Can have many custom VPCs which are all private by default.
 
 #### 1.2.4.1. Default VPC Facts
 
 VPC CIDR - defines start and end ranges of the VPC.
 IP CIDR of a default VPC is always: **172.31.0.0/16**
-
+There is only one default VPC per region (can be removed and re-created)
 Configured to have one subnet in each AZ in the region by default.
 
-Subnets are given one section of the IP ranges for the default service. 
-They are configured to provide anything that is deployed inside those subnets with public IPv4 addresses. 
-
+They are configured to provide anything that is deployed inside those subnets with public IPv4 addresses.
 In general do not use the Default VPC in a region because it is not flexible.
-
-Default VPC is large because it uses the /16 range.
-A subnet is smaller such as /20
-The higher the / number is, the smaller the grouping.
-
-Two /17's will fit into a /16, sixteen /20 subnets can fit into one /16.
 
 ### 1.2.5. Elastic Compute Cloud (EC2)
 
@@ -197,7 +183,6 @@ Default compute service. Provides access to virtual machines called instances.
 
 #### 1.2.5.1. Infrastructure as as Service (IaaS)
 
-The unit of consumption is an instance.
 An EC2 instance is configured to launch into a single VPC subnet.
 Private service by default, public access must be configured.
 The VPC needs to support public access. If you use a custom VPC then you must
@@ -243,7 +228,8 @@ No charges, deletes the disk and prevents all future charges.
 
 #### 1.2.5.5. AMI (Server Image)
 
-AMI can be used to create an instance or can be created from an instance.
+AMI can be used to create an instance.
+Can be created from an instance.
 AMIs in one region are not available from other regions.
 
 Contains:
@@ -281,10 +267,10 @@ Public Key - AWS places this key on the instance.
 
 ### 1.2.6. S3 (Default Storage Service)
 
-Global Storage platform. Runs from all regions and is a public service.
+Global Storage platform. Is a public service. Is regional (even though in UI, it shows all S3 buckets)
 Can be accessed anywhere from the internet with an unlimited amount of users.
 
-This should be the default storage platform
+This should be the default storage platform.
 
 S3 is an object storage, not file, or block storage.
 You can't mount an S3 Bucket.
@@ -307,7 +293,7 @@ Other components:
 #### 1.2.6.2. Buckets
 
 - Created in a specific AWS Region.
-- Data has a primary home region. Will not leave this region unless told.
+- Data has a primary home region. Will not leave this region unless specified.
 - Blast Radius = Region
 - Unlimited number of Objects
 - Name is globally unique
@@ -378,11 +364,10 @@ Resources:
       KeyName: !Ref Keyname
 ```
 
-Once a template is created, AWS will make a stack. This is a living and active
-representation of a template. One template can create infinite amount of stacks.
+Once a template is created, AWS will make a stack. This is a living and active representation of a template.
+One template can create infinite amount of stacks.
 
-For any **Logical Resources** in the stack,
-CF will make a corresponding **Physical Resources** in your AWS account.
+For any **Logical Resources** in the stack, CF will make a corresponding **Physical Resources** in your AWS account.
 
 It is cloud formations job to keep the logical and physical resources in sync.
 
@@ -394,15 +379,15 @@ Collects and manages operational data on your behalf.
 
 Three products in one
 
-- Metrics: data relating to AWS products, apps, on-prem solutions
+- Metrics: data relating to AWS products, apps, on-prem solutions (cpu usage...)
 - Logs: collection, monitoring
 - Events: event hub
-  - If an AWS service does something, CW events can perform another action
+  - If an AWS service does something, CW events can perform another action.
   - Generate an event to do something at a certain time of day or time of week.
 
 #### 1.2.9.1. Namespace
 
-Container for monitoring data.
+Container ("folder") for monitoring data.
 Naming can be anything so long as it's not `AWS/service` such as `AWS/EC2`.
 This is used for all metric data of that service
 
@@ -411,18 +396,18 @@ This is used for all metric data of that service
 Time ordered set of data points such as:
 
 - CPU Usage
-- Network IN/OUT
+- Network I/O
 - Disk IO
 
-This is not for a specific server. This could get things from different servers.
+This might not be for a specific server. This could get things from different servers.
 
 Anytime CPU Utilization is reported, the **datapoint** will report:
 
 - Timestamp = 2019-12-03
 - Value = 98.3
 
-**Dimensions** could be used to get metrics for a specific instance or type of instance, among others. They separate data points for different **things** or
-**perspectives** within the same metric.
+**Dimensions** are other attributes sent along with the "CPU utilization" for example, i.e. instance_name,
+and then we can select an instance by its instance_name and display data only for that instance.
 
 #### 1.2.9.3. Alarms
 
@@ -488,7 +473,7 @@ Used when HA and FT don't work.
 
 ### 1.2.12. Domain Name System (DNS)
 
-DNS is a discovery service. Translates machines into humans and vice-versa.
+DNS is a discovery service. Translates IPs into URLs and vice-versa.
 It is a huge database and has to be distributed.
 
 Parts of the DNS system
@@ -516,8 +501,7 @@ DNS names are read right to left with multiple parts separated by periods.
 `www.netflix.com.`
 
 The last period is assumed to be there in a browser when it's not present.
-The DNS Root is hosted on DNS Root Servers (13). These are hosted
-by 12 major companies.
+The DNS Root is hosted on DNS Root Servers (13). These are hosted by 12 major companies.
 
 **Root Hints** is a pointer to the DNS Root servers provided by the OS vendor
 
@@ -537,13 +521,8 @@ of the DNS system because they control the root zone.
 Assuming a laptop is querying DNS directly for www.amazon.com and using
 a root hints file to know how to access a root server and query the root zone.
 
-- When something is trusted in DNS, it is an **authority**.
-- One piece can be authoritative for root.
-- One piece can be authoritative for amazon.com
-- The root zone is the start and the only thing trusted in DNS.
-- The root zone can delegate a part of itself to another zone or entity.
-- That someone else then becomes authoritative for just the part that's delegated.
-- The root zone is just a database of the top level domains.
+Authoritative name servers provide answers to DNS queries from their own data, which is stored in DNS records.
+These servers are considered the definitive source for information about a domain.
 
 The top level domains are the only thing immediately to the left of the root in a DNS name.
 
@@ -564,7 +543,7 @@ allowing domain registration
 
 #### 1.2.13.1. Register Domains
 
-Has relationships with all major registries (registrar)
+Router 53 has relationships with all major registries (registrar)
 
 - Route 53 will check with the top level domain to see if the name is available
 - Route 53 creates a zone file for the domain to be registered
@@ -572,7 +551,7 @@ Has relationships with all major registries (registrar)
   - Generally four of these for one individual zone
   - This is a hosted zone
   - The zone file will be put on these four managed nameservers
-- Route 53 will communicate with the `.org` registry and add the nameserver records 
+- Route 53 will communicate with the `.org` registry and add the nameserver records
 into the zone file for that top level domain.
   - This is done with a nameserver record (NS).
 
@@ -610,7 +589,7 @@ Getting the answer from an Authoritative Source is known as an
 **Authoritative Answer**.
 
 If another client queries the same thing, they will get back a
-**Non-Authoritative** response.
+**Non-Authoritative** response. (can be from cache)
 
 ---
 
@@ -641,13 +620,13 @@ Once authenticated, that identity is known as an **authenticated identity**
 
 #### 1.3.1.2. Priority Level
 
-- Explicit Deny: Denies access to a particular resource cannot be overruled.
-- Explicit Allow: Allows access so long there is not an explicit deny.
-- Default Deny (Implicit): IAM identities start off with no resource access.
+1- Explicit Deny: Denies access to a particular resource cannot be overruled.
+2- Explicit Allow: Allows access so long there is not an explicit deny.
+3- Default Deny (Implicit): IAM identities start off with no resource access.
 
 #### 1.3.1.3. Inline Policies and Managed Policies
 
-- Inline Policy: grants access and assigned on each accounts individually.
+- Inline Policy: grants access and assigned on each accounts individually. (only for exceptions)
 - Managed Policy (best practice): one policy is applied to all users at once.
 
 ### 1.3.2. IAM Users
@@ -660,9 +639,8 @@ Identity used for anything requiring **long-term** AWS access
 
 If you can name a thing to use the AWS account, this is an IAM user.
 
-When a **principal** wants to **request** to perform an action,
-it will **authenticate** against an identity within IAM. An IAM user is an
-identity which can be used in this way.
+Authentication is how the principal can prove to IAM that is it what it claims it is (user login using username and password or access keys).
+Authorization is IAM checking if the principal is allowed or denied to access services.
 
 There are two ways to authenticate:
 
@@ -721,13 +699,14 @@ Groups bring two benefits
 AWS merges all of the policies from all groups the user is in together.
 
 - The 5000 IAM user limit applies to groups.
-- There is **no all users** IAM group.
+- There is no **all users** IAM group.
   - You can create a group and add all users into that group, but it needs to be
 created and managed on your own.
 - No Nesting: You cannot have groups within groups.
-- 300 Group Limit per account. This can be fixed with a support ticket.
+- 300 Group Limit per account. This can be increased with a support ticket.
+- A user can be part of multiple groups
 
-**Resource Policy** A bucket can have a policy associated with that bucket.
+**Resource Policy** A bucket can have a policy associated with that bucket (policy attached to the resource).
 It does so by referencing the identity using an ARN (Amazon Reference Name).
 A policy on a resource can reference IAM users and IAM roles by the ARN.
 A bucket can give access to one or more users or one or more roles.
@@ -745,7 +724,7 @@ A single thing that uses an identity is an IAM User.
 IAM Roles are also identities that are used by large groups of individuals.
 If have more than 5000 principals, it could be a candidate for an IAM Role.
 
-IAM Roles are **assumed** you become that role.
+IAM Roles are **assumed**, you become that role.
 
 This can be used short term by other identities.
 
@@ -785,6 +764,8 @@ which suggested a Role might be the ideal identity to use.
 When this is run, it uses the sts:AssumeRole to generate keys to
 CloudWatch and S3.
 
+Using an IAM role is better in this case, otherwise the lambda function would need credentials (IAM user credentials) to access another service.
+
 It is better when possible to use an IAM Role versus attaching a policy.
 
 #### 1.3.5.1. Emergency or out of the usual situations
@@ -798,12 +779,12 @@ its really needed.
 #### 1.3.5.2. Adding AWS into existing corp environment
 
 You may have an existing identity provider you are trying to allow access to.
-This may offer SSO (Single Sign On) or over 5000 identities.
+This may offer SSO (Single Sign On) for over 5000 identities.
 This is useful to reuse your existing identities for AWS.
 External accounts can't be used to access AWS directly.
 To solve this, you allow an IAM role in the AWS account to be assumed
 by one of the active directories.
-**ID Federation** allowing an external service the ability to assume a role.
+**ID Federation** allowing an external "identity" the ability to assume a role.
 
 #### 1.3.5.3. Making an app with 1,000,000 users
 
@@ -817,8 +798,19 @@ Can scale quickly and beyond.
 
 #### 1.3.5.4. Cross Account Access
 
-You can use a role in the partner account and use that to upload objects
-to AWS resources.
+A user in account A can assume a role in account B to access resources in account B.
+
+#### 1.3.5.5. Service-linked roles
+
+Are similar to IAM roles, except that AWS creates them and manages them when you enable certain features or services.
+They are service specific and are usef exclusively by that service.
+They are updated by AWS when needed.
+
+#### 1.3.5.6. Passrole
+
+The PassRole permission is essential for allowing users to delegate roles to AWS services, enabling those services to perform actions on their behalf using the permissions granted by the specified IAM role.
+- PassRole Permission Requirement: The iam:PassRole permission is required for a user to pass an IAM role to an EC2 instance, even if the role is already attached to the instance profile.
+- Role Assumption: Without the iam:PassRole permission, the user cannot launch the EC2 instance with the specified role, and the instance will not be able to assume the role.
 
 ### 1.3.6. AWS Organizations
 
@@ -828,7 +820,7 @@ If you have more than 5 to 10 accounts, you would want to use an org.
 
 Take a single AWS account **standard AWS account** and create an org.
 The standard AWS account then becomes the **master account**.
-The master account can invite other existing standard AWS accounts. They will
+The master (or general) account can invite other existing standard AWS accounts. They will
 need to approve their joining to the org.
 
 When standard AWS accounts become part of the org, they
@@ -839,28 +831,33 @@ Organizations can only have one **master accounts** and zero or more
 #### 1.3.6.1. Organization Root
 
 This is a container that can hold AWS member accounts or the master account.
-It could also contain **organizational units** which can contain other
-units or member accounts.
+It could also contain **organizational units** which can contain other units or member accounts.
 
 #### 1.3.6.2. Consolidated billing
 
-The individual billing for the member accounts is removed and they pass their
-billing to the master account.
-Inside an AWS organization, you get a single monthly bill for the master
-account which covers all the billing for each users.
-Can offer a discount with consolidation of reservations and volume discounts
+The individual billing for the member accounts is removed and they pass their billing to the master account.
+Inside an AWS organization, you get a single monthly bill for the master account which covers all the billing for each users.
+Can offer a discount for reservation of services ahead.
 
 #### 1.3.6.3. Create new accounts in an org
 
 Adding accounts in an organization is easy with only an email needed.
-You no longer need IAM users in each accounts. You can use IAM roles
-to change these.
-It is best to have a single AWS account only used for login.
-Some enterprises may use an AWS account while smaller ones may use the master.
+You no longer need IAM users in each accounts. You can use IAM roles to change these.
+It is best to have a seperate AWS account only used for login.
+Some enterprises may use a seperate AWS account (for login) while smaller ones may use the master.
 
 #### 1.3.6.4. Role Switching
 
-Allows you to switch between accounts from the command line
+Allows you to switch between accounts from the UI console. (same for DEV, INT and PROD accounts)
+Behind the scenes, what AWS does is simply making you assume a role to be able to access other resources in other accounts.
+
+If the organization was used to create the AWS account, then a role would have been already created in that account.
+If the organization adds an AWS account that exists already, then the role must be created manually in that account.
+  Usually :
+  - Add a role with a trusted entity containing the organization general account id.
+  - With Admin permissions
+  - Name the role with a specific name (the same name that the organization would chose when creating the role itself) : OrganizationAccountAccessRole
+  - Use the role and the account id to switch account from the organization general account. (role is equivalent to fpc/UserFull we used before)
 
 ### 1.3.7. Service Control Policies
 
@@ -877,6 +874,8 @@ should not be used because it is a security risk.
 
 SCPs limit what the account, **including root** can do inside that account.
 They don't grant permissions themselves, just act as a barrier.
+
+For example, using SCP, the general account can deny the S3 service from a child account (DEV account for example)
 
 #### 1.3.7.1. Allow List vs Deny List
 
@@ -913,30 +912,7 @@ You must then add any services you want to Deny such as `DenyS3`
 }
 ```
 
-**Deny List** is a good default because it allows for the use of growing
-services offered by AWS. A lot less admin overhead.
-
-**Allow List** allows you to be conscience of your costs.
-
-- To begin, you must remove the `FullAWSAccess` list
-- Then, specify which services need to be allowed access.
-- Example `AllowS3EC2` is below
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-        "Effect": "Allow",
-        "Action": [
-            "s3:*",
-            "ec2:*"
-        ],
-    "Resource": "*"
-    }
-  ]
-}
-```
+There can be something allowed in SCP but not allowed in identity policies in accounts, and vice-versa. Only their intersection will be allowed in the end.
 
 ### 1.3.8. CloudWatch Logs
 
@@ -945,24 +921,17 @@ environment.
 
 This allows to **store**, **monitor** and **access** logging data.
 
-- This is a piece of information data and a timestamp
-- Can be more fields, but at least these two
-
-Comes with some AWS Integrations.
-Security is provided with IAM roles or Service roles
 Can generate metrics based on logs **metric filter**
 
 #### 1.3.8.1. Architecture of CloudWatch Logs
 
-It is a regional service `us-east-1`
+It is a regional service.
 
-Need logging sources such as external APIs or databases. This sends
-information as **log events**. These are stored in **log streams**. This is a
-sequence of log events from the same source.
+Need logging sources such as external APIs or databases.
+This sends information as **log events**. These are stored in **log streams**, which are sequences of log events from the same source.
 
-**Log Groups** are containers for multiple logs streams of the same
-type of logging. This also stores configuration settings such as
-retention settings and permissions.
+**Log Groups** are containers for multiple logs streams of the same type of logging.
+They can be configured with settings such as retention settings and permissions.
 
 Once the settings are defined on a log group, they apply to all log streams
 in that log group. Metric filters are also applied on the log groups.
@@ -3673,7 +3642,7 @@ encryption, configuration, and networking without intervention.
 
 ### 1.10.7. Enhanced Monitoring
 
-CloudWatch gathers metrics about CPU utilization from the hypervisor for a DB instance, and Enhanced Monitoring gathers its metrics from an agent on the instance. As a result, you might find differences between the measurements, because the hypervisor layer performs a small amount of work. The differences can be greater if your DB instances use smaller instance classes, because then there are likely more virtual machines (VMs) that are managed by the hypervisor layer on a single physical instance. 
+CloudWatch gathers metrics about CPU utilization from the hypervisor for a DB instance, and Enhanced Monitoring gathers its metrics from an agent on the instance. As a result, you might find differences between the measurements, because the hypervisor layer performs a small amount of work. The differences can be greater if your DB instances use smaller instance classes, because then there are likely more virtual machines (VMs) that are managed by the hypervisor layer on a single physical instance.
 
 > Enhanced Monitoring metrics are useful when you want to see how different processes or threads on a DB instance use the CPU.
 
@@ -4524,7 +4493,7 @@ Public service that provides fully managed highly available message queues.
   puts it into a different workload to try and fix the corruption.
 - ASG can scale and lambdas can be invoked based on queue length.
 - Standard queue
-  - multi-lane highway. 
+  - multi-lane highway.
   - guarantee the order and at least once delivery.
 - FIFO queue
   - single lane road with no way to overtake
@@ -4533,9 +4502,9 @@ Public service that provides fully managed highly available message queues.
 
     Standard Queue| FIFO Queue |
     ---------|----------|---------
-    Multi lane highway | Single lane road with no way to overtake | 
-    guarantee the order and at least one delivery | guarantee the order and at exactly one delivery | 
-    empty| 3000 messages p/s with batching or up to 300 messages p/s without | 
+    Multi lane highway | Single lane road with no way to overtake |
+    guarantee the order and at least one delivery | guarantee the order and at exactly one delivery |
+    empty| 3000 messages p/s with batching or up to 300 messages p/s without |
 
 Billed on **requests** not messages. A request is a single request to SQS.
 One request can return 0 - 10 messages up to 64KB data in total.
@@ -4562,7 +4531,7 @@ policies only can allow access from an outside account. This is a resource polic
 
 - Scalable streaming service. It is designed to inject data from
 lots of devices or lots of applications.
-- Many producers send data into a Kinesis Stream. Streams are the basic unit of Kinesis. 
+- Many producers send data into a Kinesis Stream. Streams are the basic unit of Kinesis.
 - The stream can scale from low to near infinite data rates.
 - Highly available public service by design.
 - Streams store a 24-hour moving window of data.
@@ -4580,7 +4549,7 @@ that can be ingested during a 24 hour period. However much you ingest during
 **Kinesis data records (1MB)** are stored across shards and are the blocks
 of data for a stream.
 
-**Kinesis Data Firehose** connects to a Kinesis stream. It can move the data from a stream onto S3 or another service. Kinesis Firehose allows for the long term persistence of storage of kinesis data into services like S3. 
+**Kinesis Data Firehose** connects to a Kinesis stream. It can move the data from a stream onto S3 or another service. Kinesis Firehose allows for the long term persistence of storage of kinesis data into services like S3.
 
 ### 1.13.10. SQS vs Kinesis
 
@@ -4648,7 +4617,7 @@ caching or just selected ones.
 ### 1.14.2. AWS Certificate Manager (ACM)
 
 - HTTP lacks encryption and is insecure
-- HTTPS (HyperText Transfer Protocol Secure) uses SSL/TLS to create a secure tunnel over which normal http can be transferred.  
+- HTTPS (HyperText Transfer Protocol Secure) uses SSL/TLS to create a secure tunnel over which normal http can be transferred.
 - Data is encrypted in-transit from the perspective of an outside observer.
 - HTTPS Certificates also allows for servers to prove their identity
 - Signed by a trusted authority (a Certificate Authority [CAs]), which are trusted by your browser.
@@ -4695,7 +4664,7 @@ permissions.
 
 - Move the AWS network closer to customers.
 - Designed to optimize the flow of data from users to your AWS infrastructure.
-- While CloudFront caches your application at Edge Locations, Global Accelerator moves the AWS infrastructure closer to your customers. 
+- While CloudFront caches your application at Edge Locations, Global Accelerator moves the AWS infrastructure closer to your customers.
 - Generally customers who are further away from your infrastructure go through
 more internet based hops and this means a lower quality connection.
 - Normal IP addresses are unicast IP addresses. These refer to one thing.
@@ -4831,7 +4800,7 @@ endpoint. You can either use the endpoint specific DNS names or you can
 enable PrivateDNS which overrides the default and allows unmodified
 applications to access the services using the interface endpoint. This doesn't
 use routing and only DNS.
-Interface endpoints because they use normal VPC network interfaces are **not highly available**. 
+Interface endpoints because they use normal VPC network interfaces are **not highly available**.
 > Make sure as a Solutions Architect when you are designing an architecture if you are utilizing multiple AZs then you need to put interface endpoints in every AZ that you use inside that VPC.
 
 ### 1.15.5. VPC Peering
@@ -4914,7 +4883,7 @@ Static| Dynamic |
   your hardware.
 - This is a single fiber optic cable from the AWS Managed DX port to your network.
 - You can run Virtual Interfaces (VIFs) over a single DX connect fiber optic line.
-- There is a one-to-many relationship between a DX line and VIFs. Therefore, you can multiple VIFs running on a single DX line. 
+- There is a one-to-many relationship between a DX line and VIFs. Therefore, you can multiple VIFs running on a single DX line.
 - VIFs are of two types:
   - Private VIF (VPC)
     - Connects to one AWS VPC
@@ -5398,7 +5367,7 @@ Answer: $N_i \cdot S_i$ = $10 \cdot 3 = 30$ WCUs
 
 Note: 1 RCU $=$ 4KB
 
-Example: What is the RCU of storing 10 items per second with 2.5K average size per item. 
+Example: What is the RCU of storing 10 items per second with 2.5K average size per item.
 
 $N_i = 10$
 $S_i = 1$ $\Rightarrow$ how many 2.5 ($\sim$3) can you get in 4, which is 1.
