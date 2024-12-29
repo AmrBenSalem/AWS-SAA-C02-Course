@@ -828,6 +828,10 @@ become **member accounts**.
 Organizations can only have one **master accounts** and zero or more
 **member accounts**
 
+#### 1.3.6.0. Organizational Units
+
+Same concept as IAM groups for IAM users. OUs group and manage multiple AWS accounts, apply Service Control Policies (SCPs) for centralized governance and compliance.
+
 #### 1.3.6.1. Organization Root
 
 This is a container that can hold AWS member accounts or the master account.
@@ -1000,6 +1004,34 @@ Makes managing multi-accounts much easier.
 
 ---
 
+## 1.3,5 Control tower
+
+- Allows quick and easy setup for multi-account environment.
+- "Evolution" of AWS organization with more feature, intelligence and automation.
+- Orchestrates other AWS services.
+- Provides SSO/ID federation, centralized logging...
+
+### 1.3,5.1 Account factory
+
+Component that automates the provision of AWS accounts (or be part in the organization).
+Uses CloudFormation under the hood.
+Accounts can be configured to have standard account and network configuration.
+
+### 1.3,5.2 Control tower components
+
+- Landing Zone : is the main service of control tower
+- When CT is setup, it creates 2 OUs:
+  - Foundation OU : 2 AWS accounts are created here :
+    - Audit account (Sandbox OU): SNS, Cloudwatch for notifications ...
+    - Log archive account (Security OU): Contains Cloudtrail, AWS config ...
+  - Custom OU : Account factory provisioned accounts
+- Has Guard rails to detect (or prevent) drifts from governance standards in accounts.
+  -They are basically rules that are (Mandatory, Strongly recommended, Elective):
+    - Preventive : prenvent users from doing something.
+    - Detective : compliance checks.
+
+---
+
 ## 1.4. Simple-Storage-Service-(S3)
 
 ### 1.4.1. S3 Security
@@ -1010,26 +1042,33 @@ bucket.
 
 #### 1.4.1.1. S3 Bucket Policy
 
-This is a **resource policy**
+This is a **resource policy** (attached to S3)
 
 - controls who has access to that resource
 - can allow or deny access from different accounts
-- can allow or deny anonymous principals
+- can allow or deny anonymous principals (AWS externals)
   - this is explicitly declared in the bucket policy itself.
+- Generaly has the "principal" attribute in the statement.
+- If a condition is there, the condition should resolve to "True".
 
-Different from an **identity policy**
+Different from an **identity policy** (attached to IAM users for example)
 
 - controls what that identity can access
 - can only be attached to identities in your own account
   - no way of giving an identity in another account access to a bucket.
+- Generaly doesn't have the "principal" attribute in the statement.
 
 Each bucket can only have one policy, but it can have multiple statements.
 
-#### 1.4.1.2. ACLs (Legacy)
+#### 1.4.1.2. ACLs (Legacy) and Block public access
 
 A way to apply a subresource to objects and buckets.
 These are legacy and AWS does not recommend their use.
 They are inflexible and allow simple permissions.
+
+Block public (AWS external) access (option when creating or modifying the S3) is a final boundary.
+If enabled, it will block the access no matter what the bucket policy states.
+But if it's disabled, you still need to define a policy to gain access to the S3.
 
 #### 1.4.1.3. S3 Exam PowerUp
 
@@ -1064,22 +1103,21 @@ When you enable static website hosting you need two HTML files:
 
 Static website hosting creates a **website endpoint**.
 
-This is influenced by the bucket name and region it is in.
-This cannot be changed.
+For the bucket to be used with the registred DNS, it should have the following name pattern : (DNS : example.com | Bucket : top10.example.com).
+A DNS record (A with alias) has to be created to route from DNS -> S3.
 
 You can use a custom domain for a bucket, but then the bucket name matters.
 The name of the bucket must match the domain.
 
 #### 1.4.2.1. Offloading
 
-Instead of using EC2 to host an entire website, the compute service
-can generate a HTML file which points to the resources hosted on a static
-bucket. This ensures the media is retrieved from S3 and not EC2.
+Instead of using EC2 to host an entire website, the website can load (or redirect to) resources hosted on a static bucket (e.g. images).
+Better costs in general.
 
 #### 1.4.2.2. Out-of-band pages
 
-This may be an error page to display maintenance if the server goes offline.
-We could then change our DNS and move customers to a backup website on S3.
+Load static pages (e.g. error pages) from S3.
+Good in cases of showing error or maintenance pages (e.g. website is in maintenance, meaning EC2 won't work, better use S3 static hosting for that)
 
 #### 1.4.2.3. S3 Pricing
 
@@ -1103,29 +1141,29 @@ Versioning
 
 - This is off by default.
 - Once it is turned on, it cannot be turned off.
-- Versioning can be suspended and enabled again.
+- Versioning can be suspended (no more version creation, but old versions are maintained) and enabled again.
 - This allows for multiple versions of objects within a bucket.
+- A version ID is attributed to the object.
 - Objects which would modify objects **generate a new version** instead.
 
-The latest or current version is always returned when an object version
-is not requested.
+The latest or current version is always returned when an object version is not requested.
 
-When an object is deleted, AWS puts a **delete marker** on the object
-and hides all previous versions. You could delete this marker to enable
-the item.
+When an object is deleted, AWS puts a **delete marker**  (shown when enabling "show versions" in UI) on the object and hides all previous versions.
+You could delete this marker to "undo the delete" on the object.
 
-To delete an object, you must delete all the versions of that object
-using their version marker.
+To delete a version of the object, you must specify the ID of the version to be deleted.
+To actually delete an object, you must delete all the versions of that object using their verion IDs.
+
+Space is consumed by ALL versions (thus bills are paid for all versions).
 
 #### 1.4.3.1. MFA Delete
 
-Enabled within version configuration in a bucket.
+Can be enabled within version configuration in a bucket.
 This means MFA is required to change bucket versioning state.
 MFA is required to delete versions of an object.
 
-In order to change a version state or delete a particular version of an object,
-you need to provide the serial number of your MFA token as well as the code
-it generates. These are concatenated and passed with any API calls.
+In order to change a version state or delete a particular version of an object, you need to provide the serial number of your MFA token as well as the code it generates.
+These are concatenated and passed with any API calls.
 
 ### 1.4.4. S3 Performance Optimization
 
@@ -1133,7 +1171,7 @@ Single PUT Upload
 
 - Objects uploaded to S3 are sent as a single stream by default.
 - If the stream fails, the upload fails and requires a restart of the transfer.
-- Single PUT upload up to 5GB
+- Single PUT upload is limited to 5GB max.
 
 Multipart Upload
 
@@ -1142,9 +1180,9 @@ Multipart Upload
 - Upload can be split into maximum of 10,000 parts.
   - Each part can range between 5MB and 5GB.
   - Last leftover part can be smaller than 5MB as needed.
-- Parts can fail in isolation and restart in isolation.
+- Parts can fail in isolation and restart in isolation (treated as individual isolated uploads).
 - The risk of uploading large amounts of data is reduced.
-- Improves transfer rate to be the speed of all parts.
+- Improves transfer rate to be the speed of all parts (because of single stream limitations from ISP(?)).
 
 S3 Accelerated Transfer
 
@@ -1152,8 +1190,9 @@ S3 Accelerated Transfer
 - Uses the network of AWS edge locations to speed up transfer.
 - Bucket name cannot contain periods.
 - Name must be DNS compatible.
-- Benefits improve the larger the location and distance.
-  - The worse the start, the better the performance benefits.
+- When enabled, it provides an endpoint that must be used (to profit from Acceleration).
+- There is a comparative tool, to simulate transfer bandwith with/without acceleration :
+  - http://s3-accelerate-speedtest.s3-accelerate.amazonaws.com/en/accelerate-speed-comparsion.html
 
 ### 1.4.5. Encryption 101
 
