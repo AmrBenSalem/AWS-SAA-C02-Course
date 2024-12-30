@@ -1792,8 +1792,7 @@ These can't communicate over the internet and are used internally only
 
 #### 1.5.1.4. Classless inter-domain routing (CIDR)
 
-CIDR networks are represented by the starting IP address of the network
-called the network address and the prefix.
+CIDR networks are represented by the starting IP address of the network called the network address and the prefix.
 
 CIDR Example: `10.0.0.0/16`
 
@@ -1813,8 +1812,7 @@ CIDR Example: `10.0.0.0/16`
 - `10.0.0.0/24` means 10.0.0.ANYTHING - Class C
 - `10.0.0.0/32` means only 1 IP address
 
-`10.0.0.0/16` is the equivalent of `1234` as a password. You should consider
-other ranges that people might use to ensure it does not overlap.
+You should consider other ranges that people might use to ensure it does not overlap.
 
 #### 1.5.1.6. Packets
 
@@ -1826,13 +1824,12 @@ Contains:
 
 TCP and UDP are protocols built on top of IP.
 
-- TCPIP means TCP running with IP
-- UDPIP means UDP running with IP
+- TCP/IP means TCP running with IP
+- UDP/IP means UDP running with IP
 
 TCP/UDP Segment has a source and destination port number.
 This allows devices to have multiple conversations at the same time.
-In AWS when data goes through network devices, filters can be set based on
-IP addresses and port numbers.
+In AWS when data goes through network devices, filters can be set based on IP addresses and port numbers.
 
 #### 1.5.1.7. IPv6 - RFC 8200 (2017)
 
@@ -1847,10 +1844,8 @@ or you can remove them all entirely once per address
 
 `2001:0db8:28ac::82ae:3910:7334`
 
-Each address is 128 bits long. They are addressed by the start of the network
-and the prefix.
-Since each grouping is 16 values, we can multiple the groups by this to achieve
-the prefix.
+Each address is 128 bits long. They are addressed by the start of the network and the prefix.
+Since each grouping is 16 values, we can multiple the groups by this to achieve the prefix.
 
 `2001:0db8:28ac::/48` really means the network starts at
 `2001:0db8:28ac:0000:0000:0000:0000:0000` and finishes at
@@ -1863,13 +1858,14 @@ the prefix.
 VPC Consideration
 
 - What size should the VPC be. This will limit the use.
-- Are there any networks we can't use?
-- Be mindful of ranges other VPCs use or are used in other cloud environments
+- Are there any networks (ip ranges) we can't use?
+- Be mindful of ranges other VPCs use or are used in other cloud environments.
 - Try to predict the future uses.
-- VPC structure with tiers and resilience (availability) zones
+- VPC structure with tiers and resilience (availability) zones.
+- Avoid using default VPC.
 - VPC min /28 network (16 IP)
 - VPC max /16 (65456 IP)
-- Avoid common range 10.0 or 10.1, include up to 10.10
+- Avoid common range : 10.0 or 10.1, include up to 10.10
   - Suggest starting of 10.16 for a nice clean base 2 number.
 
 Reserve 2+ network ranges per region being used per account.
@@ -1885,12 +1881,15 @@ An example using 4 AWS accounts.
 
 #### 1.5.2.1. How to size VPC
 
-A subnet is located in one availability zone.
-Try to split each subnet into tiers (web, application, db, spare).
-Since each Region has at least 3 AZ's, it is a good practice to start
-splitting the network into 4 different AZs.
-This allows for at least one subnet in each AZ, and one spare.
-Taking a /16 subnet and splitting it 16 ways will make each a /20.
+- A subnet is located in one availability zone. (1 AZ => 0+ subnets)
+- 4 tiers (web, application, db, spare)
+- Each subnet is associated with a tier  -> 4 tiers.
+- Since each Region has at least 3 AZ, it is a good practice to start splitting the network into 4 different AZs.
+  - This allows for at least one subnet in each AZ, and one spare.
+- Tiers ideally will profit from every subnet (redundency, availability...) -> 4 subnets x 4 AZs = 16 subnets.
+  - -> 4 subnets for each tier.
+  - -> 4 subnets for each AZ.
+- Taking a /16 subnet and splitting it 16 ways will make each a /20.
 
 ### 1.5.3. Custom VPC
 
@@ -1904,8 +1903,7 @@ Taking a /16 subnet and splitting it 16 ways will make each a /20.
 - Hybrid networking to allow connection to other cloud or on-prem networking.
 - Default or Dedicated Tenancy. This refers to how the hardware is configured.
   - Default allows on a per resource decision later on.
-  - Dedicated locks any resourced created in that VPC to be on dedicated
-  hardware which comes at a cost premium.
+  - Dedicated locks any resourced created in that VPC to be on dedicated hardware which comes at a premium cost.
 
 #### 1.5.3.1. Custom VPC Facts
 
@@ -1925,8 +1923,7 @@ Single assigned IPv6 /56 CIDR block
 - With increasing use of IPv6, this should be added as a default
 - Range is either allocated by AWS as in you have no choice on which range
 to use, or you can select to use your own IPv6 addresses which you own.
-- IPv6 does not have private addresses, they are all routed as public by
-default.
+- IPv6 does not have private addresses, they are publicly routeable by default.
 
 #### 1.5.3.2. DNS provided by R53
 
@@ -1935,12 +1932,13 @@ If the VPC is `10.0.0.0` then the DNS IP will be `10.0.0.2`
 
 Two options that manage how DNS works in a VPC:
 
-- Edit DNS hostnames
+- enableDnsHostnames
   - If true, instances with public IPs in a VPC are given public DNS hostnames.
   - If false, this is not available.
 
-- Edit DNS resolution
-  - If true, instances in the VPC can use the DNS IP address.
+- enableDnsSupport
+  - If true, instances in the VPC can use the DNS IP address (VPC + 2).
+    - instances within the VPC can use the Amazon-provided DNS server to resolve domain names to IP addresses.
   - If false, this is not available.
 
 ### 1.5.4. VPC Subnets
@@ -1965,15 +1963,14 @@ If using `10.16.16.0/20` (`10.16.16.0` - `10.16.31.255`)
 
 - Network address: `10.16.16.0`
 - Network + 1: `10.16.16.1` - VPC Router
-- Network + 2: `10.16.16.2` - Reserved for DNS
+- Network + 2: `10.16.16.2` - Reserved for DNS (Instances within the VPC can use this DNS server to resolve both internal and external domain names.)
 - Network + 3: `10.16.16.3` - Reserved for future AWS use
 - Broadcast Address: `10.16.31.255` (Last IP in subnet)
 
 #### 1.5.4.2. DHCP Options Set
 
-This is how computing devices receive IP addresses automatically. There is
-one options set applied to a VPC at one time and this configuration flows
-through to subnets.
+This is how computing devices receive IP addresses automatically.
+There is one options set applied to a VPC at one time and this configuration flows through to subnets.
 
 - This can be changed, can create new ones, but you cannot edit one.
 - If you want to change the settings
@@ -1991,35 +1988,32 @@ through to subnets.
 
 ### 1.5.5. VPC Routing and Internet Gateway
 
-VPC Router is a highly available device available in every VPC which moves
-traffic from somewhere to somewhere else.
+VPC Router is a highly available device available in every VPC which moves traffic from somewhere to somewhere else.
 Router has a network interface in every subnet in the VPC.
 Routes traffic between subnets.
 
-Route tables defines what the VPC router will do with traffic
-when data leaves that subnet.
-A VPC is created with a main route table. If you don't associate a custom
-route table with a subnet, it uses the main route table of the VPC.
+Route tables defines what the VPC router will do with traffic when data leaves that subnet.
+A VPC is created with a main route table.
+If you don't associate a custom route table with a subnet, it uses the main route table of the VPC.
 
-If you do associate a custom route table you create with a subnet, then the
-main route table is disassociated. A subnet can only have one route table
-associated at a time, but a route table can be associated by many subnets.
+If you do associate a custom route table you create with a subnet, then the main route table is disassociated.
+A subnet can only have one route table associated at a time, but a route table can be associated by many subnets.
 
 #### 1.5.5.1. Route Tables
 
-When traffic leaves the subnet that this route table is associated with, the
-VPC router reviews the IP packets looking for the destination address.
-The traffic will try to match the route against the route table. If there
-are more than one routes found as a match, the prefix is used as a priority.
+When traffic leaves the subnet that this route table is associated with, the VPC router reviews the IP packets looking for the destination address.
+The traffic will try to match the route against the route table.
+If there are more than one routes found as a match, the prefix is used as a priority.
 The higher the prefix, the more specific the route, thus higher priority.
 If the target says local, that means the destination is in the VPC itself.
-Local route can never be updated, they're always present and the local route
-always takes priority. This is the exception to the prefix rule.
+Local route can never be updated, they're always present and the local route always takes priority. This is the exception to the prefix rule.
+To route traffic to the internet :
+  - for IPv4 : 0.0.0.0/0 -> IGW
+  - for IPv6 : ::/0 -> IGW
 
 #### 1.5.5.2. Internet Gateway
 
-A managed service that allows gateway traffic between the VPC and the internet
-or AWS Public Zones (S3, SQS, SNS, etc.)
+A managed service that allows gateway traffic between the VPC and the internet or AWS Public Zones (S3, SQS, SNS, etc.)
 
 - Regional resilient gateway attached to a VPC.
 - One IGW will cover all AZ's in a region the VPC is using.
@@ -2036,30 +2030,25 @@ In this example, an EC2 instance has:
 - Private IP address of 10.16.16.20
 - Public address of 43.250.192.20
 
-The public address is not public and connected to the EC2 instance itself.
-Instead, the IGW creates a record that links the instance's private IP
-to the public IP. This is why when an EC2 instance is created it only
-sees the private IP address. This is IMPORTANT. For IPv4 it is not configured
-in the OS with the public address.
+The EC2 instance only knows the Private IP address.
+The IGW creates a record that links the instance's private IP to the public IP.
+This is why when an EC2 instance is created it only sees the private IP address. This is IMPORTANT.
 
-When the linux instance wants to communicate with the linux update service,
-it makes a packet of data.
-The packet has a source address of the EC2 instance and a destination address
-of the linux update server. At this point the packet is not configured with
-any public addressing and could not reach the linux update server.
+When the linux instance wants to communicate with the linux update service, it makes a packet of data.
+The packet has a source address of the EC2 instance and a destination address of the linux update server.
+At this point the packet is not configured with any public addressing and could not reach the linux update server.
 
 The packet arrives at the internet gateway.
 
 The IGW sees this is from the EC2 instance and analyzes the source IP address.
-It changes the packet source IP address from the linux EC2 server and puts
-on the public IP address that is routed from that instance. The IGW then
-pushes that packet on the public internet.
+It changes the packet source IP address from the linux EC2 server and puts on the public IP address that is routed from that instance.
+The IGW then pushes that packet on the public internet.
 
-On the return, the inverse happens. As far as it is concerned, it does not know
-about the private address and instead uses the instance's public IP address.
+On the return, the inverse happens. As far as it is concerned, the linux does not know about the private address and instead uses the instance's public IP address.
+The IGW translates back the public IP address into the private one, and sends the packet in the VPC.
 
-If the instance uses an IPv6 address, that public address is good to go. The IGW
-does not translate the packet and only pushes it to a gateway.
+If the instance uses an IPv6 address, then the EC2 instances "knows" its public address, since IPv6 is publicly routeable.
+The IGW does not translate the packet and only pushes it to a gateway.
 
 #### 1.5.5.4. Bastion Host / Jumpbox
 
@@ -2068,29 +2057,52 @@ These are used to allow incoming management connections.
 Once connected, you can then go on to access internal only VPC resources.
 Used as a management point or as an entry point for a private only VPC.
 
-This is an inbound management point. Can be configured to only allow
-specific IP addresses or to authenticate with SSH. It can also integrate
-with your on premise identification service.
+This is an inbound management point. Can be configured to only allow specific IP addresses or to authenticate with SSH.
+It can also integrate with your on premise identification service.
 
-### 1.5.6. Network Access Control List (NACL)
+Used to be the only way to manage internal resources.
 
-Network Access Control Lists (NACLs) are a type of security filter
-(like firewalls) which can filter traffic as it enters or leaves a subnet.
+### 1.5.6. Stateful vs Stateless firewall
 
-All VPCs have a default NACL, this is associated with all subnets of that VPC
-by default.
+- Every "connection" has two parts : Request (initiation) and Response.
+- What happens is : In case of someone trying to send a request (packet) to a server
+  - The client picks a temporary (ephemeral) source port (1024 - 65535 (depends on OS))
+  - The client initiates a connection to the server on a well know destination port HTTPS tcp/443.
+  - The server responds using source port tcp/433 and destination port picked by the client.
+- Directionality (INBOUND/OUTBOUND) depends on the perspective (client/server)
+
+#### 1.5.6.1 Stateless firewall
+
+- Stateless firewall need inverse rule for the response.
+- Firewalls need 2 rules per connection (1 IN 1 OUT)
+  - Inbound rules can be the request and the response (2 rules)
+  - Outbound rules can also be the request and the response (2 rules)
+  - -> 4 rules
+- You generally have to allow the full range of ephemeral ports to any destination.
+  - -> Not ideal.
+
+#### 1.5.6.2 Stateful firewal
+
+- Able to identify the response for a given request.
+- It means that allowing the request (or not) is enough, if the request is allowed, the response is automatically allowed.
+- No need to allow full range of ephemeral ports.
+- Able to identify which ephemeral port is being used, and allows it in the response.
+
+### 1.5.7. Network Access Control List (NACL)
+
+Network Access Control Lists (NACLs) are a type of security filter (similar to Stateless firewall) which can filter traffic as it enters or leaves a subnet.
+Each subnet can have only one NACL.
+One NACL can be associated with many subnets.
+
+By default, default NACL is created when a VPC is created, and they allow everything.
+Custom NACLs can be created for a specific VPC and are initially associated with NO subnets. (by default Custom NACL only have a deny rule)
 NACLs are used when traffic enters or leaves a subnet.
-Since they are attached to a subnet and not a resource, they only filter
-data as it crosses in or out.
-If two EC2 instances in a VPC communicate, the NACL does nothing because
-it is not involved.
+They only filter data as it crosses in or out.
+If two EC2 instances in a subnet communicate, the NACL does nothing because it is not involved.
 
 NACLs have an inbound and outbound sets of rules.
 
-When a specific rule set has been called, the one with the lowest
-rule number first.
-As soon as one rule is matched, the processing stops for
-that particular piece of traffic.
+When a specific rule set has been called, the one with the lowest rule (that matches) number is chosen.
 
 The action can be for the traffic to **allow** or **deny** the traffic.
 
@@ -2115,82 +2127,53 @@ The rule at the bottom with `*` is the **implicit deny**
 This cannot be edited and is defaulted on each rule list.
 If no other rules match the traffic being evaluated, it will be denied.
 
-#### 1.5.6.1. NACLs example below
+-> In AWS, the main usage of NACL is to explicitly deny IPs, because for allows, security groups can be used (because NACL cannot be assigned to AWS resources).
 
-- Bob wants to view a blog using https(tcp/443)
-- We need a NACL rule to allow TCP on port 443.
-- All IP communication has two parts
-  - Initiation
-  - Response
-- Bob is initiating a connection to the server to ask for a webpage
-- Server will respond with an **Ephemeral** port
-- Bob talks to the webserver connecting to a port on that server (tcp/443)
-  - This is a well known port number
-- Bob's PC tells the server it can talk to back to Bob on a specific port
-  - Wide range from port 1024, 65535
-  - That response is outbound traffic
-- When using NACLs, you must add an outbound port for the response traffic
-as well as the inbound port. This is the ephemeral port.
-- If the webserver is not managing the apps server, it may communicate
-back on a different port.
-- This back and forth communication can be hard to configure for.
-
-#### 1.5.6.2. NACL Exam PowerUp
+#### 1.5.7.2. NACL Exam PowerUp
 
 - NACLs are stateless
   - Initiation and response traffic are separate streams requiring two rules.
 - NACLs are attached to subnets and only filter data as it crosses the
 subnet boundary. Two EC2 instances in the same subnet will not check against
 the NACLs when moving data.
-- Can explicitly allow and deny traffic. If you need to block one particular
-thing, you need to use NACLs.
-- They only see IPs, ports, protocols, and other network connections.
-No logical resources can be changed with them.
+- Can explicitly allow and deny traffic. If you need to block one particular thing, you need to use NACLs.
+- They only see IPs, ports, protocols, and other network connections. No logical resources can be changed with them.
 - NACLs cannot be assigned to specific AWS resources.
 - NACLs can be used with security groups to add explicit deny (Bad IPs/nets)
 - One subnet can only be assigned to one NACL at a time.
 
-NACLs are processed in order starting at the lowest rule number until
-it gets to the catch all. A rule with a lower rule number will be processed
-before another rule with a higher rule number.
+NACLs are processed in order starting at the lowest rule number until it gets to the catch all.
+A rule with a lower rule number will be processed before another rule with a higher rule number.
 
-### 1.5.7. Security Groups
+### 1.5.8. Security Groups
 
-- SGs are boundaries which can filter traffic.
-- Attached to a resource and not a subnet.
-- SGs have two sets of rules like NACLs.
-- SGs are stateful.
-  - Only one inbound rule is needed.
-  - They see traffic and response as the same thing.
-- Understand AWS logical resources so they're not limit to IP traffic only.
+- SGs are stateful firewalls.
+- Attached to network interfaces not instances (even if the UI shows it this way).
+- Not limit to IP traffic only.
   - Can have a source and destination referencing the instance and not the IP.
+  - Can reference other security groups (if we allow SG-X, any instance that has SG-X "attached" to it, can connect)
+  - Can reference itself, allows communication between instances that have it attached. (handles IP changes)
 - Default SG is created in a VPC to allow all traffic.
-  - Does so by referencing itself. Anything this SG is attached to is matched
-  by this rule.
 - SGs have a hidden implicit **Deny**.
   - Anything that is not allowed in the rule set for the SG is implicitly denied.
 - SG cannot explicit deny anything.
   - NACLs are used in conjunction with SGs to do explicit denys.
 
-#### 1.5.7.1. SGs vs NACL
+#### 1.5.8.1. SGs vs NACL
 
 - NACLs are used when products cannot use SGs, e.g. NAT Gateways.
 - NACLs are used when adding explicit deny, such as bad IPs or bad actors.
 - SGs is the default almost everywhere because they are stateful.
-- NACLs are associated with a subnet and only filter traffic that crosses
-that boundary. If the resource is in the same subnet, it will not do anything.
+- NACLs are associated with a subnet and only filter traffic that crosses that boundary. If the resource is in the same subnet, it will not do anything.
 
-### 1.5.8. Network Address Translation (NAT) Gateway
+### 1.5.9. Network Address Translation (NAT) Gateway
 
-Set of different processes that can address IP packets by changing
-their source or destination addresses.
+Set of different processes that can address IP packets by changing their source or destination addresses.
+What was used in the IGW was static NAT.
 
-**IP masquerading**, hides CIDR block behind one IP. This allows many IPv4
-addresses to use one public IP for **outgoing** internet access.
-Incoming connections don't work. Outgoing connections can get a response
-returned.
+**IP masquerading**, hides CIDR block behind one IP. This allows many IPv4 addresses to use one public IP for **outgoing** internet access.
 
-- Must run from a public subnet to allow for public IP address.
+- Must run from a public subnet (to be assigned a public IPv4 address in IGW).
   - Internet Gateway subnets configure to allocate public IPv4 addresses
   and default routes for those subnets pointing at the IGW.
 - Uses Elastic IPs (Static IPv4 Public)
@@ -2198,22 +2181,28 @@ returned.
   - Allocated to your account
 - AZ resilient service , but HA in that AZ.
   - If that AZ fails, there is no recovery.
-- For a fully region resilient service, you must deploy one NATGW in each AZ
-with a Route Table in each AZ with NATGW as target.
+- For a fully region resilient service, you must deploy one NATGW in each AZ with a Route Table in each AZ with NATGW as target.
+
+Why NAT ?
+Enhanced Security: Reduces the attack surface by keeping instances in private subnets.
+Cost Efficiency: Minimizes the need for multiple public IP addresses and optimizes the use of Elastic IPs.
+
+### 1.5.9.1 NAT gateway vs NAT instance
+
 - NAT instance is limited by capabilities of the instance it is running on and that instance is also general purpose, so won't offer the same level of custom design performance as NAT Gateway.
 - NAT instance is single instance running in single AZ it'll fail if EC2 hardware fails, network fails, storage fails or AZ itself fails.
 - NAT Gateway has benefit over NAT instance, inside one AZ it is highly available.
 - You can connect to NAT instance just like any other instance, you can use them as Bastion host or can use them for port forwarding.
 - With NAT Gateway it is not possible, it is managed service. NAT Gateway cannot be used as Bastion host and it cannot do port forwarding.
 - You cannot use SG with NAT instance, you can only use NACLs.
-- NAT is not required for IPv6. Inside AWS all IPv6 addresses are publicly routable. IG works with all IPv6 addresses directly.
+- You cannot use NAT for IPv6. In AWS all IPv6 addresses are publicly routable. IG works with all IPv6 addresses directly.
 - That means if you choose to make an instance in private subnet that have a default IPv6 route to IG, it'll become public instance.
-- Managed service, scales up to 45 Gbps. Can deploy multiple NATGW to increase
-bandwidth.
+- Managed service, scales up to 45 Gbps. Can deploy multiple NATGW to increase bandwidth.
 - AWS charges on usage per hour and data volume processed.
 
-NATGW cannot do port forwarding or be a bastion server. In that case it might
-be necessary to run a NAT EC2 instance instead.
+NATGW cannot do port forwarding or be a bastion server. In that case it might be necessary to run a NAT EC2 instance instead.
+
+(In routing table, the destination should be the NAT gateway instead if IGW, relation between NATG and IGW is handled automatically)
 
 ---
 
@@ -2225,72 +2214,66 @@ EC2 provides Infrastructure as a Service (IaaS Product)
 
 Servers are configured in three sections without virtualization.
 
-- CPU hardware
-- Kernel
-  - Operating system
-  - Runs in **privileged mode** and can interact with the hardware directly.
+- Hardware
+- Operating system
+  - Kernel (Runs in **privileged mode** and can interact with the hardware directly).
 - User Mode
   - Runs applications.
   - Can make a **system call** to the Kernel to interact with the hardware.
-  - If an app tries to interact with the hardware without a system call, it
-  will cause a system error and can crash the server or at minimum the app.
+  - If an app tries to interact with the hardware without a system call, it will cause a system error and can crash the server or at minimum the app.
+- A CPU can only run one thing as privileged. -> Which is why you cannot run multiple OSs at the same time, because every OS expects to run as privileged.
 
 #### 1.6.1.1. Emulated Virtualization - Software Virtualization
 
 Host OS operated on the HW and included a hypervisor (HV).
-SW ran in privileged mode and had full access to the HW.
-Guest OS wrapped in a VM and had devices mapped into their OS to emulate real
-HW. Drivers such as graphics cards were all SW emulated to allow the process
-to run properly.
+OS ran in privileged mode and has full access to the HW.
+Guest OS wrapped in a VM and had devices mapped into their OS to emulate real HW.
+Drivers such as graphics cards were all SW emulated to allow the process to run properly.
 
-The guest OS still believed they were running on real HW and tried
-to take control of the HW. The areas were not real and only allocated
-space to them for the moment.
+The guest OS believes they were running on real HW and tries to take control of the HW.
+The areas were not real and only allocated space to them for the moment.
 
-The HV performs **binary translation**.
-System calls are intercepted and translated in SW on the way. The guest OS needs
-no modification, but slows down a lot.
+The HV performs **binary translation** ;
+System calls are intercepted and translated in SW on the way.
+The guest OS needs no modification, but slows down a lot.
 
 #### 1.6.1.2. Para-Virtualization
 
-Guest OS are modified and run in HV containers, except they do not use slow
-binary translation. The OS is modified to change the **system calls** to
-**user calls**. Instead of calling on the HW, they call on the HV using
-**hypercalls**. Areas of the OS call the HV instead of the HW.
+Guest OS are modified and run in HV containers, except they do not use slow binary translation.
+The Guest OS is modified to change the **system calls** to **user calls**.
+Instead of calling on the HW, they call on the HV using **hypercalls**.
 
 #### 1.6.1.3. Hardware Assisted Virtualization
 
-The physical HW itself is virtualization aware. The CPU has specific
-functions so the HV can come in and support. When guest OS tries to run
-privileged instructions, they are trapped by the CPU and do not halt
-the process. They are redirected to the HV from the HW.
+The physical HW itself is virtualization aware. The CPU has specific functions so the HV can come in and support.
+When guest OS tries to run privileged instructions, they are trapped by the CPU and do not halt the process.
+They are redirected to the HV from the HW.
 
-What matters for a VM is the input and output operations such
-as network transfer and disk IO. The problem is multiple OS try to access
-the same piece of hardware but they get caught up on sharing.
+What matters for a VM is the input and output operations such as network transfer and disk IO.
+The problem is multiple OS try to access the same piece of hardware (still through a sofrware in the end) but they get caught up on sharing.
 
 #### 1.6.1.4. SR-IOV (Singe Route IO virtualization)
 
 Allows a network or any card to present itself as many mini cards.
-As far as the HV is concerned, they are real dedicated cards for their
-use. No translation needs to be done by the HV. The physical card
-handles it all. In EC2 this feature is called **enhanced networking**.
+As far as the HV is concerned, they are real dedicated cards for their use.
+No translation needs to be done by the HV.
+The physical card handles it all.
+In EC2 this feature is called **enhanced networking**.
 
 ### 1.6.2. EC2 Architecture and Resilience
 
-EC2 instances are virtual machines run on EC2 hosts.
+EC2 instances are virtual machines run on EC2 hosts (hosts are physical servers).
 
 Tenancy:
 
 - **Shared** - Instances are run on shared hardware, but isolated from other customers.
 - **Dedicated** - Instances are run on hardware that's dedicates to a single customer.
-  Dedicated instances may share hardware with other instances from the same AWS account
-  that are not Dedicated instances.
+  Dedicated instances may share hardware with other instances from the same AWS account that are not Dedicated instances.
 - **Dedicated host** - Instances are run on a physical server fully dedicated for your use.
   Pay for entire host, don't pay for instances.
 
 - AZ resilient service. They run within only one AZ system.
-  - You can't access them cross zone.
+  - You can't access them cross AZ.
 
 EC2 host contains
 
@@ -2298,29 +2281,26 @@ EC2 host contains
 - Also have temporary instance store
   - If instance moves hosts, the storage is lost.
 - Can use remote storage, Elastic Block Store (EBS).
-  - EBS allows you to allocate volumes of persistent storage to instances
-within the same AZ.
+  - EBS allows you to allocate volumes of persistent storage to instances within the same AZ.
 - 2 types of networking
   - Storage networking
   - Data networking
 
 EC2 Networking (ENI)
 
-When instances are provisioned within a specific subnet within a VPC
-A primary elastic network interface is provisioned in a subnet which
-maps to the physical hardware on the EC2 host. Subnets are also within
-one specific AZ. Instances can have multiple network interfaces, even within
-different subnets so long as they're within the same AZ.
+When instances are provisioned within a specific subnet within a VPC, a primary elastic network interface is provisioned in a subnet which maps to the physical hardware on the EC2 host.
+Instances can have multiple network interfaces, even within different subnets so long as they're within the same AZ.
+An EC2 instance cannot access volumes or data network from a different AZ.
 
-An instance runs on a specific host. If you restart the instance
-it will stay on that host until either:
+An instance runs on a specific host. If you restart the instance it will stay on that host until either:
 
 - The host fails or is taken down by AWS
 - The instance is stopped and then started, different than restarted.
 
-The instance will be relocated to another host in the same AZ. Instances
-cannot move to different AZs. Everything about their hardware is locked within
-one specific AZ.
+The instance will be relocated to another host in the same AZ.
+Instances cannot move to different AZs.
+Everything about their hardware is locked within one specific AZ.
+
 A migration is taking a **copy** of an instance and moving it to a different AZ.
 
 In general instances of the same type and generation will occupy the same host.
@@ -2328,10 +2308,10 @@ The only difference will generally be their size.
 
 #### 1.6.2.1. EC2 Strengths
 
+Traditional OS+Application compute.
 Long running compute needs. Many other AWS services have run time limits.
 
 Server style applications
-
 - things waiting for network response
 - burst or stead-load
 - monolithic application stack
